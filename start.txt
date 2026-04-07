@@ -1,0 +1,10 @@
+cd C:\Users\admin\OneDrive\Desktop\clg\codex\server
+copy .env.example .env
+npm install
+npm run dev
+
+
+cd C:\Users\admin\OneDrive\Desktop\clg\codex\client
+copy .env.example .env
+npm install
+npm run dev

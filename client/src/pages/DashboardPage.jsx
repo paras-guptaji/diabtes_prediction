@@ -3,12 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const initialFormState = {
-  age: "",
-  bmi: "",
-  glucose: "",
-  bloodPressure: "",
+  gender: "",
   insulin: "",
-  cbcLipidProfiles: "",
+  hdl: "",
+  ldl: "",
+  hb1ac: "",
 };
 
 export default function DashboardPage() {
@@ -17,6 +16,7 @@ export default function DashboardPage() {
   const [formData, setFormData] = useState(initialFormState);
   const [loading, setLoading] = useState(false);
   const [predictionResult, setPredictionResult] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleLogout = () => {
     logout();
@@ -35,29 +35,37 @@ export default function DashboardPage() {
     event.preventDefault();
     setLoading(true);
     setPredictionResult(null);
+    setErrorMessage("");
 
-    // Replace this timeout with your real machine learning API call.
-    // Example:
-    // const response = await fetch("http://localhost:5000/api/predict", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(formData),
-    // });
-    // const result = await response.json();
-    // setPredictionResult(result.prediction);
-    await new Promise((resolve) => setTimeout(resolve, 1400));
+    const payload = {
+      gender: formData.gender,
+      insulin: Number(formData.insulin),
+      hdl: Number(formData.hdl),
+      ldl: Number(formData.ldl),
+      hb1ac: Number(formData.hb1ac),
+    };
 
-    const glucoseValue = Number(formData.glucose);
-    const bmiValue = Number(formData.bmi);
-    const ageValue = Number(formData.age);
+    try {
+      const response = await fetch("http://127.0.0.1:5001/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    const mockRisk =
-      glucoseValue > 145 || bmiValue > 30 || ageValue > 50
-        ? "High Risk"
-        : "Low Risk";
+      const data = await response.json();
 
-    setPredictionResult(mockRisk);
-    setLoading(false);
+      if (!response.ok) {
+        throw new Error(data.error || "Prediction request failed.");
+      }
+
+      setPredictionResult(data);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -100,76 +108,28 @@ export default function DashboardPage() {
           <form className="assessment-form" onSubmit={handleSubmit}>
             <div className="assessment-grid">
               <div className="dashboard-form-group">
-                <label htmlFor="age">Age (years)</label>
-                <input
-                  id="age"
-                  name="age"
-                  type="number"
-                  min="1"
-                  max="120"
-                  placeholder="e.g. 45"
-                  value={formData.age}
+                <label htmlFor="gender">Gender</label>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
                   onChange={handleChange}
                   required
-                />
+                >
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
               </div>
 
               <div className="dashboard-form-group">
-                <label htmlFor="bmi">BMI (Body Mass Index)</label>
-                <input
-                  id="bmi"
-                  name="bmi"
-                  type="number"
-                  min="10"
-                  max="70"
-                  step="0.1"
-                  placeholder="e.g. 28.4"
-                  value={formData.bmi}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="dashboard-form-group">
-                <label htmlFor="glucose">Glucose Level (mg/dL)</label>
-                <input
-                  id="glucose"
-                  name="glucose"
-                  type="number"
-                  min="40"
-                  max="400"
-                  placeholder="e.g. 135"
-                  value={formData.glucose}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="dashboard-form-group">
-                <label htmlFor="bloodPressure">
-                  Blood Pressure (Diastolic, mm Hg)
-                </label>
-                <input
-                  id="bloodPressure"
-                  name="bloodPressure"
-                  type="number"
-                  min="30"
-                  max="180"
-                  placeholder="e.g. 82"
-                  value={formData.bloodPressure}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="dashboard-form-group">
-                <label htmlFor="insulin">Insulin Level (mu U/ml)</label>
+                <label htmlFor="insulin">Insulin</label>
                 <input
                   id="insulin"
                   name="insulin"
                   type="number"
                   min="0"
-                  max="900"
+                  step="0.01"
                   placeholder="e.g. 125"
                   value={formData.insulin}
                   onChange={handleChange}
@@ -177,14 +137,46 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div className="dashboard-form-group dashboard-form-group-full">
-                <label htmlFor="cbcLipidProfiles">CBC Lipid Profiles</label>
-                <textarea
-                  id="cbcLipidProfiles"
-                  name="cbcLipidProfiles"
-                  rows="4"
-                  placeholder="Enter lipid profile summary, HDL, LDL, triglycerides, hemoglobin, or any relevant CBC notes."
-                  value={formData.cbcLipidProfiles}
+              <div className="dashboard-form-group">
+                <label htmlFor="hdl">HDL</label>
+                <input
+                  id="hdl"
+                  name="hdl"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g. 45"
+                  value={formData.hdl}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="dashboard-form-group">
+                <label htmlFor="ldl">LDL</label>
+                <input
+                  id="ldl"
+                  name="ldl"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g. 110"
+                  value={formData.ldl}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="dashboard-form-group">
+                <label htmlFor="hba1c">HbA1c</label>
+                <input
+                  id="hb1ac"
+                  name="hb1ac"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g. 6.5"
+                  value={formData.hb1ac}
                   onChange={handleChange}
                   required
                 />
@@ -200,24 +192,43 @@ export default function DashboardPage() {
                 {loading ? "Running Prediction..." : "Run Prediction"}
               </button>
               <p>
-                This mock flow is ready to connect to your prediction API when
-                the model endpoint is available.
+                Values are sent to the Flask ML API in the trained feature
+                order.
               </p>
             </div>
           </form>
 
+          {errorMessage ? (
+            <div className="prediction-result-card high-risk">
+              <span>Prediction Error</span>
+              <strong>Request Failed</strong>
+              <p>{errorMessage}</p>
+            </div>
+          ) : null}
+
           {predictionResult ? (
             <div
               className={`prediction-result-card ${
-                predictionResult === "High Risk" ? "high-risk" : "low-risk"
+                predictionResult.prediction === 1 ? "high-risk" : "low-risk"
               }`}
             >
-              <span>Mock Prediction Result</span>
-              <strong>{predictionResult}</strong>
-              <p>
-                Connect your backend model here to return the actual diabetes
-                risk classification and probability score.
-              </p>
+              <span>Prediction Result</span>
+              <strong>{predictionResult.result}</strong>
+              <p>Confidence: {Number(predictionResult.confidence).toFixed(4)}</p>
+
+              <h3>Precautions</h3>
+              <ul>
+                {predictionResult.precautions.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+
+              <h3>Measures</h3>
+              <ul>
+                {predictionResult.measures.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </div>
           ) : null}
         </section>

@@ -450,7 +450,8 @@ input {
 }
 
 .dashboard-form-group input,
-.dashboard-form-group textarea {
+.dashboard-form-group textarea,
+.dashboard-form-group select {
   width: 100%;
   padding: 0.95rem 1rem;
   border-radius: 16px;
@@ -462,7 +463,8 @@ input {
 }
 
 .dashboard-form-group input:focus,
-.dashboard-form-group textarea:focus {
+.dashboard-form-group textarea:focus,
+.dashboard-form-group select:focus {
   outline: none;
   border-color: rgba(40, 117, 143, 0.56);
   box-shadow: 0 0 0 4px rgba(40, 117, 143, 0.12);
@@ -527,6 +529,20 @@ input {
 
 .prediction-result-card p {
   margin: 0.55rem 0 0;
+}
+
+.prediction-result-card h3 {
+  margin: 1rem 0 0.35rem;
+  font-size: 1rem;
+}
+
+.prediction-result-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.prediction-result-card li {
+  margin: 0.28rem 0;
 }
 
 .prediction-result-card.low-risk {

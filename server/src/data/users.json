@@ -7,5 +7,23 @@
     "authProvider": "local",
     "googleId": "",
     "createdAt": "2026-04-05T18:37:19.489Z"
+  },
+  {
+    "id": "53a6a58c-842e-4d34-bc3c-86ab1a951317",
+    "name": "Test User",
+    "email": "codex-test@example.com",
+    "password": "$2a$10$Bttf3Qgodbg7ycDEG9v3r.vpSl0B7EOZpu5jzwSt6jbk7Cd4v0HjS",
+    "authProvider": "local",
+    "googleId": "",
+    "createdAt": "2026-04-30T06:33:43.851Z"
+  },
+  {
+    "id": "f7e63aa3-4556-46d3-8bc2-1b246b3e9bb8",
+    "name": "Retry User",
+    "email": "codex-retry@example.com",
+    "password": "$2a$10$R9Y7/pFVmlzNNRfaL9n9xeahzmPqjDROtWzgRCUixgYui.igBifNq",
+    "authProvider": "local",
+    "googleId": "",
+    "createdAt": "2026-04-30T06:35:34.874Z"
   }
 ]

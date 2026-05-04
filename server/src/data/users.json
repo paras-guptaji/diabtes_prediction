@@ -25,5 +25,14 @@
     "authProvider": "local",
     "googleId": "",
     "createdAt": "2026-04-30T06:35:34.874Z"
+  },
+  {
+    "id": "7bad8f79-6922-42b0-9057-fe48ca84d03b",
+    "name": "Live Check",
+    "email": "codex-live@example.com",
+    "password": "$2a$10$eOZO1Q2yVxL3/J5ixIvsl.aMtpTbYcUaFeT50Z2qEk09D0IBzpRCq",
+    "authProvider": "local",
+    "googleId": "",
+    "createdAt": "2026-05-01T18:51:53.879Z"
   }
 ]

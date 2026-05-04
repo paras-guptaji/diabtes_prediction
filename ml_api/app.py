@@ -6,8 +6,10 @@ import numpy as np
 import pandas as pd
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from tensorflow.keras.models import load_model as keras_load_model
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "lstm_model.pkl")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "lstm_model.h5")
+SCALER_PATH = os.path.join(os.path.dirname(__file__), "scaler.pkl")
 FEATURE_METADATA_PATH = os.path.join(os.path.dirname(__file__), "model_features.json")
 FEATURE_ORDER = ["gender", "insulin", "hdl", "ldl", "hb1ac"]
 
@@ -18,44 +20,50 @@ CORS(app)
 def load_model():
     if not os.path.exists(MODEL_PATH):
         raise FileNotFoundError(
-            "lstm_model.pkl not found. Place the exported model inside ml_api."
+            "lstm_model.h5 not found. Place the exported model inside ml_api."
+        )
+    if not os.path.exists(SCALER_PATH):
+        raise FileNotFoundError(
+            "scaler.pkl not found. Place the scaler inside ml_api."
         )
 
-    return joblib.load(MODEL_PATH)
+    model = keras_load_model(MODEL_PATH)
+    scaler = joblib.load(SCALER_PATH)
+    return model, scaler
 
 
-def get_trained_feature_order(model):
-    trained_features = getattr(model, "feature_names_in_", None)
+# def get_trained_feature_order(model):
+#     trained_features = getattr(model, "feature_names_in_", None)
 
-    if trained_features is not None:
-        return list(trained_features)
+#     if trained_features is not None:
+#         return list(trained_features)
 
-    if os.path.exists(FEATURE_METADATA_PATH):
-        with open(FEATURE_METADATA_PATH, "r", encoding="utf-8") as metadata_file:
-            metadata = json.load(metadata_file)
-            feature_order = metadata.get("feature_order")
+#     if os.path.exists(FEATURE_METADATA_PATH):
+#         with open(FEATURE_METADATA_PATH, "r", encoding="utf-8") as metadata_file:
+#             metadata = json.load(metadata_file)
+#             feature_order = metadata.get("feature_order")
 
-            if isinstance(feature_order, list):
-                return feature_order
+#             if isinstance(feature_order, list):
+#                 return feature_order
 
-    return None
+#     return None
 
 
-def validate_model_contract(model):
-    trained_features = get_trained_feature_order(model)
+# def validate_model_contract(model):
+#     trained_features = get_trained_feature_order(model)
 
-    if trained_features is None:
-        raise ValueError(
-            "Unable to verify trained feature order. Retrain/export the model "
-            "with feature_names_in_ or add model_features.json containing "
-            '["gender", "insulin", "hdl", "ldl", "hb1ac"].'
-        )
+#     if trained_features is None:
+#         raise ValueError(
+#             "Unable to verify trained feature order. Retrain/export the model "
+#             "with feature_names_in_ or add model_features.json containing "
+#             '["gender", "insulin", "hdl", "ldl", "hb1ac"].'
+#         )
 
-    if trained_features != FEATURE_ORDER:
-        raise ValueError(
-            f"Model feature mismatch. Expected {FEATURE_ORDER}, got {trained_features}. "
-            "Retrain the model using only dataset-backed features."
-        )
+#     if trained_features != FEATURE_ORDER:
+#         raise ValueError(
+#             f"Model feature mismatch. Expected {FEATURE_ORDER}, got {trained_features}. "
+#             "Retrain the model using only dataset-backed features."
+#         )
 
 
 def parse_numeric_field(data, field_name):
@@ -70,6 +78,38 @@ def parse_numeric_field(data, field_name):
         raise ValueError(f"{field_name} must be a numeric value.") from exc
 
 
+# def preprocess_input(data):
+#     gender = data.get("gender")
+
+#     if gender is None or gender == "":
+#         raise ValueError("gender is required.")
+
+#     normalized_gender = str(gender).strip().lower()
+
+#     if normalized_gender not in ["male", "female"]:
+#         raise ValueError("gender must be either male or female.")
+
+#     gender_value = 1.0 if normalized_gender == "male" else 0.0
+
+#     features = [
+#         gender_value,
+#         parse_numeric_field(data, "insulin"),
+#         parse_numeric_field(data, "hdl"),
+#         parse_numeric_field(data, "ldl"),
+#         parse_numeric_field(data, "hb1ac"),
+#     ]
+
+#     return np.array([features], dtype=np.float32)
+
+def bin_value(val, low, high):
+    """Match exact binning logic from training notebook."""
+    if val < low:
+        return 0
+    elif low <= val <= high:
+        return 1
+    else:
+        return 2
+
 def preprocess_input(data):
     gender = data.get("gender")
 
@@ -83,45 +123,40 @@ def preprocess_input(data):
 
     gender_value = 1.0 if normalized_gender == "male" else 0.0
 
+    insulin = parse_numeric_field(data, "insulin")
+    hdl     = parse_numeric_field(data, "hdl")
+    ldl     = parse_numeric_field(data, "ldl")
+    hb1ac   = parse_numeric_field(data, "hb1ac")
+
+    # Apply same binning as training notebook before scaling
+    insulin_bin = bin_value(insulin, 8, 12)
+    hdl_bin     = bin_value(hdl, 40, 45)
+    ldl_bin     = bin_value(ldl, 130, 159)
+    hb1ac_bin   = bin_value(hb1ac, 5.6, 6.4)
+
     features = [
         gender_value,
-        parse_numeric_field(data, "insulin"),
-        parse_numeric_field(data, "hdl"),
-        parse_numeric_field(data, "ldl"),
-        parse_numeric_field(data, "hb1ac"),
+        insulin_bin,
+        hdl_bin,
+        ldl_bin,
+        hb1ac_bin,
     ]
 
-    return pd.DataFrame([features], columns=FEATURE_ORDER, dtype=np.float32)
+    return np.array([features], dtype=np.float32)
 
 
-def extract_prediction_and_confidence(model, features):
-    if hasattr(model, "predict_proba"):
-        probabilities = np.asarray(model.predict_proba(features), dtype=float)
-
-        if probabilities.ndim == 2 and probabilities.shape[1] >= 2:
-            confidence = float(probabilities[0][1])
-        else:
-            confidence = float(probabilities.reshape(-1)[0])
-
-        prediction = 1 if confidence >= 0.5 else 0
-        return prediction, round(confidence, 4)
-
-    raw_prediction = np.asarray(model.predict(features), dtype=float).reshape(-1)
-
-    if raw_prediction.size == 0:
-        raise ValueError("Model returned an empty prediction.")
-
-    value = float(raw_prediction[0])
-
-    # Supports sigmoid-style models that return a probability directly.
-    if 0.0 <= value <= 1.0:
-        prediction = 1 if value >= 0.5 else 0
-        return prediction, round(value, 4)
-
-    raise ValueError(
-        "Model does not expose a probability score. Retrain/export a model that "
-        "supports predict_proba or returns probabilities."
-    )
+def extract_prediction_and_confidence(model, scaler, features):
+    # Scale the input
+    features_scaled = scaler.transform(features)
+    
+    # Reshape for LSTM: (1, num_features, 1)
+    features_lstm = features_scaled.reshape(1, features_scaled.shape[1], 1)
+    
+    # Predict
+    prob = float(model.predict(features_lstm)[0][0])
+    prediction = 1 if prob >= 0.5 else 0
+    
+    return prediction, round(prob, 4)
 
 
 def build_guidance(prediction):
@@ -154,11 +189,11 @@ def build_guidance(prediction):
 
 
 try:
-    MODEL = load_model()
-    validate_model_contract(MODEL)
+    MODEL, SCALER = load_model()
     MODEL_ERROR = None
 except Exception as error:
     MODEL = None
+    SCALER = None
     MODEL_ERROR = str(error)
 
 
@@ -184,7 +219,7 @@ def predict():
 
     try:
         features = preprocess_input(data)
-        prediction, confidence = extract_prediction_and_confidence(MODEL, features)
+        prediction, confidence = extract_prediction_and_confidence(MODEL, SCALER, features)
         guidance = build_guidance(prediction)
 
         return jsonify(

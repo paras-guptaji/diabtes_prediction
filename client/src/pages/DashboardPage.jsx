@@ -7,7 +7,7 @@ const initialFormState = {
   insulin: "",
   hdl: "",
   ldl: "",
-  hb1ac: "",
+  hba1c: "",
 };
 
 export default function DashboardPage() {
@@ -42,7 +42,7 @@ export default function DashboardPage() {
       insulin: Number(formData.insulin),
       hdl: Number(formData.hdl),
       ldl: Number(formData.ldl),
-      hb1ac: Number(formData.hb1ac),
+      hba1c: Number(formData.hba1c),
     };
 
     try {
@@ -170,13 +170,13 @@ export default function DashboardPage() {
               <div className="dashboard-form-group">
                 <label htmlFor="hba1c">HbA1c</label>
                 <input
-                  id="hb1ac"
-                  name="hb1ac"
+                  id="hba1c"
+                  name="hba1c"
                   type="number"
                   min="0"
                   step="0.01"
                   placeholder="e.g. 6.5"
-                  value={formData.hb1ac}
+                  value={formData.hba1c}
                   onChange={handleChange}
                   required
                 />

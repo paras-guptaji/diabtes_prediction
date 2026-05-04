@@ -1,0 +1,10 @@
+{
+  "feature_order": [
+    "gender",
+    "insulin",
+    "hdl",
+    "ldl",
+    "hba1c"
+  ],
+  "optimal_threshold": 0.1
+}

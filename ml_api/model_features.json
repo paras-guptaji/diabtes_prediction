@@ -1,0 +1,17 @@
+{
+  "feature_order": [
+    "hba1c",
+    "insulin_levels",
+    "hdl",
+    "ldl",
+    "homa_ir",
+    "bmi",
+    "triglycerides",
+    "crp_levels",
+    "fasting_blood_glucose",
+    "blood_pressure_systolic",
+    "family_history_of_diabetes",
+    "obesity",
+    "hypertension"
+  ]
+}

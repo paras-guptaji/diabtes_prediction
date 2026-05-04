@@ -3,12 +3,62 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const initialFormState = {
-  gender: "",
-  insulin: "",
+  hba1c: "",
   hdl: "",
   ldl: "",
-  hb1ac: "",
+  bmi: "",
+  bloodPressure: "",
+  physicalActivity: "",
+  smoking: "",
+  insulinLevels: "",
+  fastingBloodGlucose: "",
+  homaIr: "",
+  triglycerides: "",
+  crpLevels: "",
+  familyHistoryOfDiabetes: "",
+  obesity: "",
+  hypertension: "",
 };
+
+const percentFormatter = (value) => `${Number(value).toFixed(2)}%`;
+
+function buildPayload(formData) {
+  const payload = {};
+  const numericFieldMap = {
+    hba1c: "hba1c",
+    hdl: "hdl",
+    ldl: "ldl",
+    bmi: "bmi",
+    bloodPressure: "blood_pressure",
+    insulinLevels: "insulin_levels",
+    fastingBloodGlucose: "fasting_blood_glucose",
+    homaIr: "homa_ir",
+    triglycerides: "triglycerides",
+    crpLevels: "crp_levels",
+  };
+
+  Object.entries(numericFieldMap).forEach(([formKey, apiKey]) => {
+    if (formData[formKey] !== "") {
+      payload[apiKey] = Number(formData[formKey]);
+    }
+  });
+
+  const booleanFieldMap = {
+    physicalActivity: "physical_activity",
+    smoking: "smoking",
+    familyHistoryOfDiabetes: "family_history_of_diabetes",
+    obesity: "obesity",
+    hypertension: "hypertension",
+  };
+
+  Object.entries(booleanFieldMap).forEach(([formKey, apiKey]) => {
+    if (formData[formKey] !== "") {
+      payload[apiKey] = formData[formKey];
+    }
+  });
+
+  return payload;
+}
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -37,21 +87,13 @@ export default function DashboardPage() {
     setPredictionResult(null);
     setErrorMessage("");
 
-    const payload = {
-      gender: formData.gender,
-      insulin: Number(formData.insulin),
-      hdl: Number(formData.hdl),
-      ldl: Number(formData.ldl),
-      hb1ac: Number(formData.hb1ac),
-    };
-
     try {
       const response = await fetch("http://127.0.0.1:5001/predict", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(buildPayload(formData)),
       });
 
       const data = await response.json();
@@ -72,7 +114,7 @@ export default function DashboardPage() {
     <div className="medical-dashboard">
       <header className="dashboard-navbar">
         <div>
-          <p className="dashboard-kicker">Diabetes Mellitus Type-2 System</p>
+          <p className="dashboard-kicker">Diabetes Prediction Workspace</p>
           <h1>Welcome, {user?.name || "Patient"}</h1>
         </div>
 
@@ -84,11 +126,12 @@ export default function DashboardPage() {
       <main className="dashboard-main">
         <section className="dashboard-intro-card">
           <div>
-            <span className="dashboard-badge">Medical Assessment Workspace</span>
-            <h2>Diabetes Risk Assessment Form</h2>
+            <span className="dashboard-badge">Updated Model Intake</span>
+            <h2>Diabetes risk form with optional autofill</h2>
             <p>
-              Enter the patient&apos;s latest measurements to simulate a risk
-              prediction for diabetes mellitus type-2.
+              The main fields are HbA1c, HDL, LDL, BMI, and blood pressure.
+              Any optional field left blank will be estimated safely by the ML
+              API before prediction.
             </p>
           </div>
 
@@ -98,90 +141,237 @@ export default function DashboardPage() {
               <strong>{user?.email || "Not available"}</strong>
             </div>
             <div className="mini-stat-card">
-              <span>Assessment mode</span>
-              <strong>Prediction Preview</strong>
+              <span>Prediction mode</span>
+              <strong>Risk + Prevention Guidance</strong>
             </div>
           </div>
         </section>
 
         <section className="assessment-card">
           <form className="assessment-form" onSubmit={handleSubmit}>
-            <div className="assessment-grid">
-              <div className="dashboard-form-group">
-                <label htmlFor="gender">Gender</label>
-                <select
-                  id="gender"
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </div>
+            <div>
+              <span className="section-label">Main health markers</span>
+              <div className="assessment-grid">
+                <div className="dashboard-form-group">
+                  <label htmlFor="hba1c">HbA1c</label>
+                  <input
+                    id="hba1c"
+                    name="hba1c"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 6.2"
+                    value={formData.hba1c}
+                    onChange={handleChange}
+                  />
+                </div>
 
-              <div className="dashboard-form-group">
-                <label htmlFor="insulin">Insulin</label>
-                <input
-                  id="insulin"
-                  name="insulin"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g. 125"
-                  value={formData.insulin}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+                <div className="dashboard-form-group">
+                  <label htmlFor="hdl">HDL</label>
+                  <input
+                    id="hdl"
+                    name="hdl"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 48"
+                    value={formData.hdl}
+                    onChange={handleChange}
+                  />
+                </div>
 
-              <div className="dashboard-form-group">
-                <label htmlFor="hdl">HDL</label>
-                <input
-                  id="hdl"
-                  name="hdl"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g. 45"
-                  value={formData.hdl}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+                <div className="dashboard-form-group">
+                  <label htmlFor="ldl">LDL</label>
+                  <input
+                    id="ldl"
+                    name="ldl"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 120"
+                    value={formData.ldl}
+                    onChange={handleChange}
+                  />
+                </div>
 
-              <div className="dashboard-form-group">
-                <label htmlFor="ldl">LDL</label>
-                <input
-                  id="ldl"
-                  name="ldl"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g. 110"
-                  value={formData.ldl}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+                <div className="dashboard-form-group">
+                  <label htmlFor="bmi">BMI</label>
+                  <input
+                    id="bmi"
+                    name="bmi"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 27.5"
+                    value={formData.bmi}
+                    onChange={handleChange}
+                  />
+                </div>
 
-              <div className="dashboard-form-group">
-                <label htmlFor="hba1c">HbA1c</label>
-                <input
-                  id="hb1ac"
-                  name="hb1ac"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g. 6.5"
-                  value={formData.hb1ac}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="dashboard-form-group">
+                  <label htmlFor="bloodPressure">Blood Pressure (Systolic)</label>
+                  <input
+                    id="bloodPressure"
+                    name="bloodPressure"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 126"
+                    value={formData.bloodPressure}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="dashboard-form-group">
+                  <label htmlFor="physicalActivity">Do physical activity?</label>
+                  <select
+                    id="physicalActivity"
+                    name="physicalActivity"
+                    value={formData.physicalActivity}
+                    onChange={handleChange}
+                  >
+                    <option value="">Leave blank</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+
+                <div className="dashboard-form-group">
+                  <label htmlFor="smoking">Smoking</label>
+                  <select
+                    id="smoking"
+                    name="smoking"
+                    value={formData.smoking}
+                    onChange={handleChange}
+                  >
+                    <option value="">Leave blank</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
               </div>
             </div>
+
+            <details className="advanced-section">
+              <summary>Advanced optional fields</summary>
+              <div className="assessment-grid advanced-grid">
+                <div className="dashboard-form-group">
+                  <label htmlFor="insulinLevels">Insulin Levels</label>
+                  <input
+                    id="insulinLevels"
+                    name="insulinLevels"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 14"
+                    value={formData.insulinLevels}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="dashboard-form-group">
+                  <label htmlFor="fastingBloodGlucose">
+                    Fasting Blood Glucose
+                  </label>
+                  <input
+                    id="fastingBloodGlucose"
+                    name="fastingBloodGlucose"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 102"
+                    value={formData.fastingBloodGlucose}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="dashboard-form-group">
+                  <label htmlFor="homaIr">HOMA-IR</label>
+                  <input
+                    id="homaIr"
+                    name="homaIr"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 2.8"
+                    value={formData.homaIr}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="dashboard-form-group">
+                  <label htmlFor="triglycerides">Triglycerides</label>
+                  <input
+                    id="triglycerides"
+                    name="triglycerides"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 155"
+                    value={formData.triglycerides}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="dashboard-form-group">
+                  <label htmlFor="crpLevels">CRP Levels</label>
+                  <input
+                    id="crpLevels"
+                    name="crpLevels"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 2.5"
+                    value={formData.crpLevels}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="dashboard-form-group">
+                  <label htmlFor="familyHistoryOfDiabetes">
+                    Family history of diabetes
+                  </label>
+                  <select
+                    id="familyHistoryOfDiabetes"
+                    name="familyHistoryOfDiabetes"
+                    value={formData.familyHistoryOfDiabetes}
+                    onChange={handleChange}
+                  >
+                    <option value="">Leave blank</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+
+                <div className="dashboard-form-group">
+                  <label htmlFor="obesity">Obesity</label>
+                  <select
+                    id="obesity"
+                    name="obesity"
+                    value={formData.obesity}
+                    onChange={handleChange}
+                  >
+                    <option value="">Leave blank</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+
+                <div className="dashboard-form-group">
+                  <label htmlFor="hypertension">Hypertension</label>
+                  <select
+                    id="hypertension"
+                    name="hypertension"
+                    value={formData.hypertension}
+                    onChange={handleChange}
+                  >
+                    <option value="">Leave blank</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+              </div>
+            </details>
 
             <div className="assessment-actions">
               <button
@@ -189,11 +379,12 @@ export default function DashboardPage() {
                 type="submit"
                 disabled={loading}
               >
-                {loading ? "Running Prediction..." : "Run Prediction"}
+                {loading ? "Running Prediction..." : "Submit Assessment"}
               </button>
               <p>
-                Values are sent to the Flask ML API in the trained feature
-                order.
+                Blank fields are auto-estimated. Lifestyle fields like smoking
+                and physical activity are also used to improve the prevention
+                advice shown after prediction.
               </p>
             </div>
           </form>
@@ -214,16 +405,38 @@ export default function DashboardPage() {
             >
               <span>Prediction Result</span>
               <strong>{predictionResult.result}</strong>
-              <p>Confidence: {Number(predictionResult.confidence).toFixed(4)}</p>
+              <p>{predictionResult.summary}</p>
 
-              <h3>Precautions</h3>
+              <div className="result-metrics">
+                <div className="result-metric">
+                  <small>Risk level</small>
+                  <strong>{predictionResult.riskLevel}</strong>
+                </div>
+                <div className="result-metric">
+                  <small>Diabetes probability</small>
+                  <strong>
+                    {percentFormatter(
+                      predictionResult.diabetesProbabilityPercent
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              {predictionResult.autoFilledFields?.length ? (
+                <div className="autofill-note">
+                  <strong>Auto-filled fields:</strong>{" "}
+                  {predictionResult.autoFilledFields.join(", ")}
+                </div>
+              ) : null}
+
+              <h3>Preventive precautions</h3>
               <ul>
                 {predictionResult.precautions.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
 
-              <h3>Measures</h3>
+              <h3>Recommended measures</h3>
               <ul>
                 {predictionResult.measures.map((item) => (
                   <li key={item}>{item}</li>

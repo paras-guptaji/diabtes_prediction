@@ -34,5 +34,14 @@
     "authProvider": "local",
     "googleId": "",
     "createdAt": "2026-05-01T18:51:53.879Z"
+  },
+  {
+    "id": "ac34a975-7f09-46aa-b096-5c715ace8378",
+    "name": "Deploy Check",
+    "email": "deploy-check@example.com",
+    "password": "$2a$10$tXlrbpUEaiORXGuKWWu8o..q.m7/qsDk8mEAI1Zc1MFSLIeXZDuz2",
+    "authProvider": "local",
+    "googleId": "",
+    "createdAt": "2026-05-04T14:55:19.922Z"
   }
 ]

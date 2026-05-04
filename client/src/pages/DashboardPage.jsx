@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+const ML_API_URL =
+  import.meta.env.VITE_ML_API_URL || "http://127.0.0.1:5001";
+
 const initialFormState = {
   hba1c: "",
   hdl: "",
@@ -88,7 +91,7 @@ export default function DashboardPage() {
     setErrorMessage("");
 
     try {
-      const response = await fetch("http://127.0.0.1:5001/predict", {
+      const response = await fetch(`${ML_API_URL}/predict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

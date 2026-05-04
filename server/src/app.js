@@ -5,14 +5,28 @@ const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
+function parseAllowedOrigins() {
+  const configuredOrigins = [
+    process.env.CLIENT_URL,
+    process.env.CLIENT_URLS,
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+  ]
+    .filter(Boolean)
+    .flatMap((value) =>
+      String(value)
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    );
+
+  return [...new Set(configuredOrigins)];
+}
+
 app.use(
   cors({
     origin(origin, callback) {
-      const allowedOrigins = [
-        process.env.CLIENT_URL || "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5173",
-      ];
+      const allowedOrigins = parseAllowedOrigins();
 
       // Allow browserless tools and same-machine local app origins.
       if (!origin || allowedOrigins.includes(origin)) {

@@ -25,6 +25,14 @@ const initialFormState = {
 
 const percentFormatter = (value) => `${Number(value).toFixed(2)}%`;
 
+function getPredictionErrorMessage(error) {
+  if (error instanceof TypeError) {
+    return `Cannot reach the prediction API at ${ML_API_URL}. Start the ML service on port 5001 and try again.`;
+  }
+
+  return error.message || "Prediction request failed.";
+}
+
 function buildPayload(formData) {
   const payload = {};
   const numericFieldMap = {
@@ -107,7 +115,7 @@ export default function DashboardPage() {
 
       setPredictionResult(data);
     } catch (error) {
-      setErrorMessage(error.message);
+      setErrorMessage(getPredictionErrorMessage(error));
     } finally {
       setLoading(false);
     }

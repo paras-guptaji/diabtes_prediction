@@ -43,5 +43,23 @@
     "authProvider": "local",
     "googleId": "",
     "createdAt": "2026-05-04T14:55:19.922Z"
+  },
+  {
+    "id": "607ab93b-84db-4845-a43c-6f7f3f260ad0",
+    "name": "paras gupta",
+    "email": "gparas741@gmail.com",
+    "password": "$2a$10$qY0P6QvXGUkWwH4nGKHK5.KeTrb5tZZLgOXUpbeuQLk.KuRQx0hhK",
+    "authProvider": "local",
+    "googleId": "",
+    "createdAt": "2026-05-14T17:10:05.804Z"
+  },
+  {
+    "id": "b684a6eb-6f5b-4d12-bae4-3ea1d0fae2b1",
+    "name": "paras",
+    "email": "gparas743@gmail.com",
+    "password": "$2a$10$eymrdBhFTY8xq5qTapddQuv9/mvk2FzVkLIic5FU7tIS98ttuht3u",
+    "authProvider": "local",
+    "googleId": "",
+    "createdAt": "2026-05-14T17:10:30.934Z"
   }
 ]

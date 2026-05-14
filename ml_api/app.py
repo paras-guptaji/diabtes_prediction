@@ -6,6 +6,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from tensorflow.keras.models import load_model as keras_load_model
 
+app = Flask(__name__)
+CORS(app)
+
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "lstm_model.h5")
 SCALER_PATH = os.path.join(os.path.dirname(__file__), "scaler.pkl")
 
@@ -73,8 +76,7 @@ FIELD_ALIASES = {
     "smoking": ["smoking"],
 }
 
-app = Flask(__name__)
-CORS(app)
+##
 
 
 def load_model():

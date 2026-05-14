@@ -1,28 +1,10 @@
 services:
   - type: web
-    name: diabetes-auth-server
-    runtime: node
-    rootDir: server
-    plan: free
-    buildCommand: npm install
-    startCommand: npm start
-    envVars:
-      - key: PORT
-        value: 5000
-      - key: JWT_SECRET
-        sync: false
-      - key: CLIENT_URL
-        sync: false
-      - key: CLIENT_URLS
-        sync: false
-
-  - type: web
-    name: diabetes-ml-api
+    name: diabetes-prediction-api
     runtime: python
     rootDir: ml_api
-    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.9
+        value: 3.11.10
